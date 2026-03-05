@@ -126,11 +126,29 @@ export const processXPGain = (currentXP, currentLevel, xpGain) => {
   return { newXP: xp, newLevel: level, levelsGained };
 };
 
-// ── Supabase image URL ────────────────────────────────────────────────────────
+// ── Portrait URL ──────────────────────────────────────────────────────────────
+//
+// Priority:
+//   1. VITE_PORTRAIT_BASE_URL  — any public host, e.g. https://cdn.example.com/portraits
+//   2. VITE_SUPABASE_URL       — auto-builds the Supabase Storage path
+//
+// Expected file layout (same for any host):
+//   {base}/{gender}/{class}/{level}.png
+//   e.g. /male/swordsman/1.png
 
-export const getPortraitUrl = (supabaseUrl, gender, characterClass, level) => {
-  if (!supabaseUrl) return null;
-  return `${supabaseUrl}/storage/v1/object/public/character-portraits/${gender.toLowerCase()}/${characterClass.toLowerCase()}/${level}.png`;
+const PORTRAIT_BASE = (() => {
+  const custom = import.meta.env.VITE_PORTRAIT_BASE_URL;
+  if (custom) return custom.replace(/\/$/, '');
+
+  const supabase = import.meta.env.VITE_SUPABASE_URL;
+  if (supabase) return `${supabase}/storage/v1/object/public/character-portraits`;
+
+  return null;
+})();
+
+export const getPortraitUrl = (_unused, gender, characterClass, level) => {
+  if (!PORTRAIT_BASE) return null;
+  return `${PORTRAIT_BASE}/${gender.toLowerCase()}/${characterClass.toLowerCase()}/${level}.png`;
 };
 
 // ── Date utils ────────────────────────────────────────────────────────────────
