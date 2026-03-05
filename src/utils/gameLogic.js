@@ -1,0 +1,152 @@
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+export const CLASSES = [
+  'swordsman',
+  'archer',
+  'acolyte',
+  'thief',
+  'merchant',
+  'mage',
+  'assassin',
+  'paladin',
+  'bard',
+];
+
+export const CLASS_DISPLAY = {
+  swordsman: 'Swordsman',
+  archer:    'Archer',
+  acolyte:   'Acolyte',
+  thief:     'Thief',
+  merchant:  'Merchant',
+  mage:      'Mage',
+  assassin:  'Assassin',
+  paladin:   'Paladin',
+  bard:      'Bard',
+};
+
+export const CLASS_ICONS = {
+  swordsman: '⚔️',
+  archer:    '🏹',
+  acolyte:   '✨',
+  thief:     '🗡️',
+  merchant:  '💰',
+  mage:      '🔮',
+  assassin:  '🌑',
+  paladin:   '🛡️',
+  bard:      '🎵',
+};
+
+// Thematic description shown on class selection
+export const CLASS_DESCRIPTIONS = {
+  swordsman: 'Master of blades',
+  archer:    'Swift and precise',
+  acolyte:   'Wielder of light',
+  thief:     'Shadow and cunning',
+  merchant:  'Gold and fortune',
+  mage:      'Arcane power',
+  assassin:  'Death in darkness',
+  paladin:   'Holy vanguard',
+  bard:      'Song of legends',
+};
+
+export const GENDERS = ['male', 'female'];
+
+export const GENDER_DISPLAY = {
+  male:   'Male',
+  female: 'Female',
+};
+
+export const GENDER_ICONS = {
+  male:   '♂',
+  female: '♀',
+};
+
+// ── Level names ───────────────────────────────────────────────────────────────
+
+export const getLevelName = (level) => {
+  if (level === 100) return 'Transcendent';
+  if (level >= 91)   return 'S-Rank';
+  if (level >= 81)   return 'Legendary';
+  if (level >= 71)   return 'Veteran';
+  if (level >= 61)   return 'Elite';
+  if (level >= 51)   return 'Warlord';
+  if (level >= 41)   return 'Champion';
+  if (level >= 31)   return 'Knight';
+  if (level >= 21)   return 'Hunter';
+  if (level >= 11)   return 'Scout';
+  if (level >= 6)    return 'Apprentice';
+  return 'Novice';
+};
+
+// Roman numerals for level display flavor
+export const getLevelRoman = (level) => {
+  if (level <= 0 || level > 100) return level.toString();
+  const val = [100,90,50,40,10,9,5,4,1];
+  const sym = ['C','XC','L','XL','X','IX','V','IV','I'];
+  let result = '';
+  let n = level;
+  for (let i = 0; i < val.length; i++) {
+    while (n >= val[i]) {
+      result += sym[i];
+      n -= val[i];
+    }
+  }
+  return result;
+};
+
+// ── XP calculations ───────────────────────────────────────────────────────────
+
+/** XP needed to advance from level N to N+1 */
+export const getXPNeeded = (level) => level * 100;
+
+/** Process an XP gain, returning new XP and level after any level-ups */
+export const processXPGain = (currentXP, currentLevel, xpGain) => {
+  if (currentLevel >= 100) return { newXP: 0, newLevel: 100, levelsGained: 0 };
+
+  let xp = currentXP + xpGain;
+  let level = currentLevel;
+  let levelsGained = 0;
+
+  while (level < 100) {
+    const needed = getXPNeeded(level);
+    if (xp >= needed) {
+      xp -= needed;
+      level++;
+      levelsGained++;
+    } else {
+      break;
+    }
+  }
+
+  if (level >= 100) {
+    level = 100;
+    xp = 0;
+  }
+
+  return { newXP: xp, newLevel: level, levelsGained };
+};
+
+// ── Supabase image URL ────────────────────────────────────────────────────────
+
+export const getPortraitUrl = (supabaseUrl, gender, characterClass, level) => {
+  if (!supabaseUrl) return null;
+  return `${supabaseUrl}/storage/v1/object/public/character-portraits/${gender.toLowerCase()}/${characterClass.toLowerCase()}/${level}.png`;
+};
+
+// ── Date utils ────────────────────────────────────────────────────────────────
+
+export const getTodayString = () => {
+  return new Date().toISOString().split('T')[0];
+};
+
+// ── XP bar percentage ─────────────────────────────────────────────────────────
+
+export const getXPPercent = (currentXP, currentLevel) => {
+  if (currentLevel >= 100) return 100;
+  const needed = getXPNeeded(currentLevel);
+  return Math.min(100, (currentXP / needed) * 100);
+};
+
+// ── Quest XP reward ───────────────────────────────────────────────────────────
+
+export const QUEST_XP_REWARD = 100;

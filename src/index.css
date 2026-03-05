@@ -1,0 +1,387 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base Reset ──────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #06060c;
+  color: #e2e8f0;
+  font-family: 'Exo 2', sans-serif;
+  overscroll-behavior: none;
+}
+
+#root {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── Scrollbar ───────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #0d0d1a;
+}
+::-webkit-scrollbar-thumb {
+  background: #f0c04060;
+  border-radius: 2px;
+}
+
+/* ── Typography ─────────────────────────────────────── */
+.font-cinzel  { font-family: 'Cinzel', serif; }
+.font-rajdhani { font-family: 'Rajdhani', sans-serif; }
+
+/* ── Gold glow text ─────────────────────────────────── */
+.text-gold-glow {
+  color: #f0c040;
+  text-shadow: 0 0 10px rgba(240, 192, 64, 0.7), 0 0 30px rgba(240, 192, 64, 0.3);
+}
+
+.text-rune-glow {
+  color: #a78bfa;
+  text-shadow: 0 0 10px rgba(167, 139, 250, 0.7), 0 0 30px rgba(167, 139, 250, 0.3);
+}
+
+/* ── Border decorations ─────────────────────────────── */
+.border-gold-glow {
+  border-color: #f0c04060;
+  box-shadow: 0 0 10px rgba(240, 192, 64, 0.15), inset 0 0 10px rgba(0,0,0,0.5);
+}
+
+.border-rune-glow {
+  border-color: #7c3aed80;
+  box-shadow: 0 0 12px rgba(124, 58, 237, 0.3), inset 0 0 8px rgba(0,0,0,0.5);
+}
+
+/* ── Quest card parchment ───────────────────────────── */
+.quest-card {
+  background: linear-gradient(135deg, #1a1508 0%, #13100a 50%, #1a1508 100%);
+  border: 1px solid #f0c04030;
+  box-shadow:
+    0 0 0 1px #0a0805,
+    inset 0 1px 0 rgba(240,192,64,0.05),
+    0 4px 16px rgba(0,0,0,0.6);
+  position: relative;
+}
+
+.quest-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='none'/%3E%3Ccircle cx='1' cy='1' r='0.5' fill='rgba(240,192,64,0.03)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.quest-card.completed {
+  background: linear-gradient(135deg, #0a1a0a 0%, #081008 50%, #0a1a0a 100%);
+  border-color: #22c55e40;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.15), inset 0 0 8px rgba(0,0,0,0.5);
+}
+
+/* ── XP bar glow ────────────────────────────────────── */
+.xp-bar-fill {
+  background: linear-gradient(90deg, #3b82f6, #7c3aed, #a78bfa);
+  box-shadow: 0 0 8px rgba(124, 58, 237, 0.7), 0 0 20px rgba(59, 130, 246, 0.3);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Level badge ────────────────────────────────────── */
+.level-badge {
+  background: linear-gradient(135deg, #1a1000, #2a1e00);
+  border: 1px solid #f0c04070;
+  box-shadow: 0 0 12px rgba(240, 192, 64, 0.2);
+}
+
+/* ── Button styles ──────────────────────────────────── */
+.btn-gold {
+  background: linear-gradient(135deg, #8a6b10, #c9a227, #f0c040, #c9a227, #8a6b10);
+  background-size: 200% 100%;
+  color: #06060c;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border: 1px solid #f0c04080;
+  transition: background-position 0.3s ease, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(240, 192, 64, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.btn-gold:hover {
+  background-position: 100% 0;
+  box-shadow: 0 4px 16px rgba(240, 192, 64, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-gold:active {
+  transform: translateY(0);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #450a0a, #7f1d1d);
+  color: #fca5a5;
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  border: 1px solid #dc262640;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #7f1d1d, #991b1b);
+  box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: #f0c04080;
+  border: 1px solid #f0c04030;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-ghost:hover {
+  border-color: #f0c04070;
+  color: #f0c040;
+  background: rgba(240, 192, 64, 0.05);
+}
+
+/* ── Class card ─────────────────────────────────────── */
+.class-card {
+  background: linear-gradient(135deg, #13131f, #1a1a2e);
+  border: 1px solid #f0c04030;
+  transition: all 0.2s;
+}
+
+.class-card:hover {
+  border-color: #f0c04070;
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  box-shadow: 0 0 16px rgba(240, 192, 64, 0.1);
+  transform: translateY(-2px);
+}
+
+.class-card.selected {
+  border-color: #f0c040;
+  background: linear-gradient(135deg, #1a1508, #2a2010);
+  box-shadow: 0 0 20px rgba(240, 192, 64, 0.3);
+}
+
+/* ── Gender card ────────────────────────────────────── */
+.gender-card {
+  background: linear-gradient(135deg, #13131f, #1a1a2e);
+  border: 2px solid #f0c04030;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.gender-card:hover {
+  border-color: #f0c04070;
+  transform: translateY(-2px);
+}
+
+.gender-card.selected {
+  border-color: #f0c040;
+  background: linear-gradient(135deg, #1a1508, #2a2010);
+  box-shadow: 0 0 20px rgba(240, 192, 64, 0.3);
+}
+
+/* ── Input styling ──────────────────────────────────── */
+.quest-input {
+  background: #0d0d1a;
+  border: 1px solid #f0c04030;
+  color: #e2e8f0;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.quest-input:focus {
+  outline: none;
+  border-color: #f0c04070;
+  box-shadow: 0 0 0 2px rgba(240, 192, 64, 0.1);
+}
+
+.quest-input::placeholder {
+  color: #4a4a6a;
+}
+
+/* ── Divider decoration ─────────────────────────────── */
+.divider-rune {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #f0c04050;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+}
+
+.divider-rune::before,
+.divider-rune::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #f0c04030, transparent);
+}
+
+/* ── Portrait skeleton ──────────────────────────────── */
+.portrait-skeleton {
+  background: linear-gradient(90deg, #1a1a2e 25%, #16213e 50%, #1a1a2e 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ── Floating XP text ───────────────────────────────── */
+.xp-float-text {
+  position: fixed;
+  pointer-events: none;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  color: #f0c040;
+  text-shadow: 0 0 10px rgba(240, 192, 64, 0.8);
+  animation: xpFloat 2s ease-out forwards;
+  z-index: 9999;
+}
+
+/* ── Level up overlay ───────────────────────────────── */
+.levelup-overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, #1a0a3a 0%, #06060c 70%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: overlayIn 0.3s ease-out;
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.levelup-flash {
+  position: fixed;
+  inset: 0;
+  background: white;
+  pointer-events: none;
+  animation: flashScreen 0.6s ease-out forwards;
+  z-index: 999;
+}
+
+.levelup-text {
+  font-family: 'Cinzel', serif;
+  font-weight: 900;
+  color: #f0c040;
+  text-shadow:
+    0 0 20px rgba(240, 192, 64, 1),
+    0 0 60px rgba(240, 192, 64, 0.7),
+    0 0 100px rgba(167, 139, 250, 0.5);
+  animation: levelUp 0.6s ease-out;
+}
+
+/* ── Particles / stars ──────────────────────────────── */
+.bg-stars {
+  background-image:
+    radial-gradient(1px 1px at 10% 15%, rgba(240,192,64,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 30% 60%, rgba(167,139,250,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 25%, rgba(240,192,64,0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 70%, rgba(167,139,250,0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 50% 90%, rgba(240,192,64,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 40%, rgba(240,192,64,0.2) 0%, transparent 100%);
+}
+
+/* ── Onboarding decorative border ───────────────────── */
+.rune-border {
+  position: relative;
+  border: 1px solid #f0c04030;
+}
+
+.rune-border::before {
+  content: '◆';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #06060c;
+  color: #f0c040;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+/* ── Scrollable quest area ──────────────────────────── */
+.quest-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #f0c04040 transparent;
+}
+
+/* ── Responsive max-width ───────────────────────────── */
+.app-container {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100svh;
+  position: relative;
+}
+
+/* ── Checkbox custom ────────────────────────────────── */
+.quest-checkbox {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #f0c04060;
+  border-radius: 4px;
+  background: #0d0d1a;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.quest-checkbox:checked {
+  background: #22c55e;
+  border-color: #22c55e;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+  animation: checkmark 0.3s ease-out;
+}
+
+.quest-checkbox:checked::after {
+  content: '✓';
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  position: absolute;
+}
+
+/* ── Background texture overlay ─────────────────────── */
+.bg-texture {
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h60v60H0z' fill='none'/%3E%3Cpath d='M30 0v60M0 30h60' stroke='rgba(240,192,64,0.02)' stroke-width='1'/%3E%3C/svg%3E");
+}
+
+/* ── Safe area padding (notched phones) ─────────────── */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
