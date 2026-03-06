@@ -3,7 +3,6 @@ import {
   getLevelName,
   CLASS_ICONS,
   CLASS_DISPLAY,
-  QUEST_XP_REWARD,
 } from '../utils/gameLogic';
 import CharacterPortrait from './CharacterPortrait';
 import XPBar from './XPBar';
@@ -16,7 +15,7 @@ export default function GameScreen({ gameState }) {
     gender,
     characterClass,
     currentLevel,
-    currentXP,
+    questsTowardLevel,
     questsCompletedToday,
     questsAbandonedToday,
     activeTasks,
@@ -135,9 +134,9 @@ export default function GameScreen({ gameState }) {
               </div>
             </div>
 
-            {/* XP bar */}
+            {/* Quest progress bar */}
             <div className="flex-1">
-              <XPBar currentXP={currentXP} currentLevel={currentLevel} />
+              <XPBar questsTowardLevel={questsTowardLevel} currentLevel={currentLevel} />
             </div>
           </div>
 
@@ -226,7 +225,7 @@ export default function GameScreen({ gameState }) {
               }`}
             >
               {showAbandonConfirm
-                ? '⚠ TAP AGAIN TO ABANDON (NO XP)'
+                ? '⚠ TAP AGAIN TO ABANDON'
                 : '✗ ABANDON QUEST'}
             </button>
           </div>
@@ -248,7 +247,7 @@ export default function GameScreen({ gameState }) {
             fontSize: '1.5rem',
           }}
         >
-          +{QUEST_XP_REWARD} XP
+          QUEST COMPLETE!
         </div>
       ))}
 

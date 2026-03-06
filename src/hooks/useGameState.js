@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   getTodayString,
-  processXPGain,
-  QUEST_XP_REWARD,
+  processQuestCompletion,
 } from '../utils/gameLogic';
 
 const STORAGE_KEY = 'quest-log-v1';
@@ -16,7 +15,7 @@ const DEFAULT_PERSISTENT = {
 
   // Daily — reset each new day
   currentLevel:           1,
-  currentXP:              0,
+  questsTowardLevel:      0,
   questsCompletedToday:   0,
   questsAbandonedToday:   0,
   activeTasks:            [],   // [{id, text, completed}]
@@ -131,11 +130,10 @@ export function useGameState() {
         return { ...prev, activeTasks: updatedTasks };
       }
 
-      // All 3 tasks complete — award XP
-      const { newXP, newLevel, levelsGained } = processXPGain(
-        prev.currentXP,
+      // All 3 tasks complete — advance quest progress
+      const { newQuestsTowardLevel, newLevel, levelsGained } = processQuestCompletion(
+        prev.questsTowardLevel,
         prev.currentLevel,
-        QUEST_XP_REWARD
       );
 
       if (levelsGained > 0) {
@@ -146,7 +144,7 @@ export function useGameState() {
         ...prev,
         activeTasks:          [],
         phase:                'input',
-        currentXP:            newXP,
+        questsTowardLevel:    newQuestsTowardLevel,
         currentLevel:         newLevel,
         questsCompletedToday: prev.questsCompletedToday + 1,
         todayDate:            getTodayString(),
@@ -186,7 +184,7 @@ export function useGameState() {
     gender:               state.gender,
     characterClass:       state.characterClass,
     currentLevel:         state.currentLevel,
-    currentXP:            state.currentXP,
+    questsTowardLevel:    state.questsTowardLevel,
     questsCompletedToday: state.questsCompletedToday,
     questsAbandonedToday: state.questsAbandonedToday,
     activeTasks:          state.activeTasks,

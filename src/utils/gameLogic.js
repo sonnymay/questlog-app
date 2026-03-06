@@ -94,36 +94,21 @@ export const getLevelRoman = (level) => {
   return result;
 };
 
-// ── XP calculations ───────────────────────────────────────────────────────────
+// ── Quest-based leveling ──────────────────────────────────────────────────────
 
-/** XP needed to advance from level N to N+1 */
-export const getXPNeeded = (level) => level * 100;
+/** Number of completed quest sets required to gain one level */
+export const QUESTS_PER_LEVEL = 3;
 
-/** Process an XP gain, returning new XP and level after any level-ups */
-export const processXPGain = (currentXP, currentLevel, xpGain) => {
-  if (currentLevel >= 100) return { newXP: 0, newLevel: 100, levelsGained: 0 };
+/** Process a completed quest set, returning new questsTowardLevel and level */
+export const processQuestCompletion = (questsTowardLevel, currentLevel) => {
+  if (currentLevel >= 100) return { newQuestsTowardLevel: 0, newLevel: 100, levelsGained: 0 };
 
-  let xp = currentXP + xpGain;
-  let level = currentLevel;
-  let levelsGained = 0;
-
-  while (level < 100) {
-    const needed = getXPNeeded(level);
-    if (xp >= needed) {
-      xp -= needed;
-      level++;
-      levelsGained++;
-    } else {
-      break;
-    }
+  const next = questsTowardLevel + 1;
+  if (next >= QUESTS_PER_LEVEL) {
+    const newLevel = Math.min(100, currentLevel + 1);
+    return { newQuestsTowardLevel: 0, newLevel, levelsGained: 1 };
   }
-
-  if (level >= 100) {
-    level = 100;
-    xp = 0;
-  }
-
-  return { newXP: xp, newLevel: level, levelsGained };
+  return { newQuestsTowardLevel: next, newLevel: currentLevel, levelsGained: 0 };
 };
 
 // ── Portrait URL ──────────────────────────────────────────────────────────────
@@ -173,14 +158,8 @@ export const getTodayString = () => {
   return new Date().toISOString().split('T')[0];
 };
 
-// ── XP bar percentage ─────────────────────────────────────────────────────────
+// ── Quest progress bar percentage ─────────────────────────────────────────────
 
-export const getXPPercent = (currentXP, currentLevel) => {
-  if (currentLevel >= 100) return 100;
-  const needed = getXPNeeded(currentLevel);
-  return Math.min(100, (currentXP / needed) * 100);
+export const getQuestPercent = (questsTowardLevel) => {
+  return Math.min(100, (questsTowardLevel / QUESTS_PER_LEVEL) * 100);
 };
-
-// ── Quest XP reward ───────────────────────────────────────────────────────────
-
-export const QUEST_XP_REWARD = 100;

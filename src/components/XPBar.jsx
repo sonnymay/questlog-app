@@ -1,8 +1,7 @@
-import { getXPPercent, getXPNeeded } from '../utils/gameLogic';
+import { getQuestPercent, QUESTS_PER_LEVEL } from '../utils/gameLogic';
 
-export default function XPBar({ currentXP, currentLevel }) {
-  const percent = getXPPercent(currentXP, currentLevel);
-  const xpNeeded = getXPNeeded(currentLevel);
+export default function XPBar({ questsTowardLevel, currentLevel }) {
+  const percent = getQuestPercent(questsTowardLevel);
   const isMaxLevel = currentLevel >= 100;
 
   return (
@@ -10,12 +9,12 @@ export default function XPBar({ currentXP, currentLevel }) {
       {/* Labels */}
       <div className="flex justify-between items-center mb-1.5">
         <span className="font-rajdhani text-xs text-white/40 tracking-wider">
-          {isMaxLevel ? 'MAX LEVEL' : 'EXPERIENCE'}
+          {isMaxLevel ? 'MAX LEVEL' : 'QUESTS'}
         </span>
         <span className="font-rajdhani text-xs text-gold/60 font-semibold">
           {isMaxLevel
             ? '✦ TRANSCENDENT ✦'
-            : `${currentXP.toLocaleString()} / ${xpNeeded.toLocaleString()} XP`}
+            : `${questsTowardLevel} / ${QUESTS_PER_LEVEL}`}
         </span>
       </div>
 
@@ -34,8 +33,8 @@ export default function XPBar({ currentXP, currentLevel }) {
           style={{ width: `${percent}%` }}
         />
 
-        {/* Segment markers (every 25%) */}
-        {!isMaxLevel && [25, 50, 75].map(pct => (
+        {/* Segment markers at 1/3 and 2/3 */}
+        {!isMaxLevel && [33.33, 66.67].map(pct => (
           <div
             key={pct}
             className="absolute top-0 bottom-0 w-px"
@@ -53,11 +52,11 @@ export default function XPBar({ currentXP, currentLevel }) {
         />
       </div>
 
-      {/* XP to next level hint */}
+      {/* Quests remaining hint */}
       {!isMaxLevel && (
         <div className="mt-1 text-right">
           <span className="font-rajdhani text-[10px] text-white/20">
-            {(xpNeeded - currentXP).toLocaleString()} XP to next level
+            {QUESTS_PER_LEVEL - questsTowardLevel} quest{QUESTS_PER_LEVEL - questsTowardLevel !== 1 ? 's' : ''} to next level
           </span>
         </div>
       )}
