@@ -6,18 +6,6 @@ export default function XPBar({ questsTowardLevel, currentLevel }) {
 
   return (
     <div className="w-full">
-      {/* Labels */}
-      <div className="flex justify-between items-center mb-1.5">
-        <span className="font-rajdhani text-xs text-white/40 tracking-wider">
-          {isMaxLevel ? 'MAX LEVEL' : 'QUESTS'}
-        </span>
-        <span className="font-rajdhani text-xs text-gold/60 font-semibold">
-          {isMaxLevel
-            ? '✦ TRANSCENDENT ✦'
-            : `${questsTowardLevel} / ${QUESTS_PER_LEVEL}`}
-        </span>
-      </div>
-
       {/* Bar track */}
       <div
         className="relative h-3 rounded-full overflow-hidden"
@@ -33,33 +21,12 @@ export default function XPBar({ questsTowardLevel, currentLevel }) {
           style={{ width: `${percent}%` }}
         />
 
-        {/* Segment markers at 1/3 and 2/3 */}
-        {!isMaxLevel && [33.33, 66.67].map(pct => (
-          <div
-            key={pct}
-            className="absolute top-0 bottom-0 w-px"
-            style={{
-              left: `${pct}%`,
-              background: 'rgba(0,0,0,0.4)',
-            }}
-          />
-        ))}
-
         {/* Shine */}
         <div
           className="absolute top-0 left-0 right-0 h-[40%] rounded-full pointer-events-none"
           style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%)' }}
         />
       </div>
-
-      {/* Quests remaining hint */}
-      {!isMaxLevel && (
-        <div className="mt-1 text-right">
-          <span className="font-rajdhani text-[10px] text-white/20">
-            {QUESTS_PER_LEVEL - questsTowardLevel} quest{QUESTS_PER_LEVEL - questsTowardLevel !== 1 ? 's' : ''} to next level
-          </span>
-        </div>
-      )}
     </div>
   );
 }
