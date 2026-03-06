@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   getTodayString,
+  getYesterdayString,
   processQuestCompletion,
 } from '../utils/gameLogic';
 
@@ -19,8 +20,14 @@ const DEFAULT_PERSISTENT = {
   questsCompletedToday:   0,
   questsAbandonedToday:   0,
   activeTasks:            [],   // [{id, text, completed}]
-  phase:                  'input',  // 'input' | 'questing'
+  phase:                  'input',  // 'input' | 'questing' | 'celebration'
   todayDate:              '',
+
+  // Cross-day persistent
+  backlogQuests:     [],    // string[] — future queued quests
+  questPrefill:      [],    // string[] — up to 3, pre-fills QuestInput after celebration
+  streak:            0,     // consecutive days with >=1 completed session
+  lastCompletedDate: '',    // ISO date string of last session completion
 };
 
 function loadState() {
@@ -40,6 +47,10 @@ function loadState() {
         characterName:  saved.characterName  ?? '',
         gender:         saved.gender         ?? '',
         characterClass: saved.characterClass ?? '',
+        // Preserve cross-day state
+        backlogQuests:     saved.backlogQuests     ?? [],
+        streak:            saved.streak            ?? 0,
+        lastCompletedDate: saved.lastCompletedDate ?? '',
         todayDate: today,
       };
     }
@@ -81,6 +92,17 @@ export function useGameState() {
     }
   }, [state.questsCompletedToday]);
 
+  // ── Computed values ───────────────────────────────────────────────────────
+
+  // Display streak: only show if player completed a session today or yesterday
+  // (a missed day breaks the streak visually without needing a state write)
+  const today     = getTodayString();
+  const yesterday = getYesterdayString();
+  const streak =
+    state.lastCompletedDate === today || state.lastCompletedDate === yesterday
+      ? state.streak
+      : 0;
+
   // ── Actions ──────────────────────────────────────────────────────────────
 
   const setupCharacter = useCallback((characterName, gender, characterClass) => {
@@ -95,7 +117,6 @@ export function useGameState() {
   }, []);
 
   const startQuesting = useCallback((taskTexts) => {
-    // taskTexts is an array of 3 non-empty strings
     const tasks = taskTexts.map((text, i) => ({
       id: i,
       text: text.trim(),
@@ -103,21 +124,19 @@ export function useGameState() {
     }));
     setState(prev => ({
       ...prev,
-      activeTasks: tasks,
-      phase: 'questing',
+      activeTasks:  tasks,
+      phase:        'questing',
+      questPrefill: [],   // consumed — clear it
     }));
   }, []);
 
   const toggleTask = useCallback((taskId) => {
-    // Capture level-up event outside setState so we can set it
     let pendingLevelUp = null;
 
     setState(prev => {
-      // Only allow toggling in questing phase
       if (prev.phase !== 'questing') return prev;
 
       const alreadyCompleted = prev.activeTasks.find(t => t.id === taskId)?.completed;
-      // Prevent un-checking once checked
       if (alreadyCompleted) return prev;
 
       const updatedTasks = prev.activeTasks.map(t =>
@@ -130,7 +149,7 @@ export function useGameState() {
         return { ...prev, activeTasks: updatedTasks };
       }
 
-      // All 3 tasks complete — advance quest progress
+      // All 3 tasks complete — advance quest progress + compute streak
       const { newQuestsTowardLevel, newLevel, levelsGained } = processQuestCompletion(
         prev.questsTowardLevel,
         prev.currentLevel,
@@ -141,22 +160,71 @@ export function useGameState() {
         pendingLevelUp = { fromLevel: prev.currentLevel, toLevel: newLevel };
       }
 
+      // Streak calculation
+      const todayStr     = getTodayString();
+      const yesterdayStr = getYesterdayString();
+      const lastDate     = prev.lastCompletedDate ?? '';
+      let newStreak      = prev.streak ?? 0;
+      if (lastDate === todayStr) {
+        // already counted today — keep streak unchanged
+      } else if (lastDate === yesterdayStr) {
+        newStreak += 1;
+      } else {
+        newStreak = 1;
+      }
+
       return {
         ...prev,
         activeTasks:          [],
-        phase:                'input',
+        phase:                'celebration',
         questsTowardLevel:    newQuestsTowardLevel,
         currentLevel:         newLevel,
         questsCompletedToday: prev.questsCompletedToday + 1,
-        todayDate:            getTodayString(),
+        todayDate:            todayStr,
+        streak:               newStreak,
+        lastCompletedDate:    todayStr,
       };
     });
 
-    // Schedule level-up event slightly after state update paints
     if (pendingLevelUp) {
-      // Use a timeout so the XP float renders first
       setTimeout(() => setLevelUpEvent(pendingLevelUp), 700);
     }
+  }, []);
+
+  // Called from the celebration screen's "Continue" button.
+  // Auto-pulls from backlog: 3+ items -> skip input and go straight to questing;
+  // fewer -> prefill input with what's available.
+  const dismissCelebration = useCallback(() => {
+    setState(prev => {
+      const backlog   = prev.backlogQuests ?? [];
+      const nextItems = backlog.slice(0, 3);
+      const remaining = backlog.slice(3);
+
+      if (nextItems.length === 3) {
+        // Full queue — auto-start immediately
+        const tasks = nextItems.map((text, i) => ({ id: i, text, completed: false }));
+        return {
+          ...prev,
+          activeTasks:   tasks,
+          backlogQuests: remaining,
+          questPrefill:  [],
+          phase:         'questing',
+        };
+      }
+
+      // Partial or empty queue — prefill input with whatever we have
+      return {
+        ...prev,
+        activeTasks:   [],
+        backlogQuests: remaining,
+        questPrefill:  nextItems,
+        phase:         'input',
+      };
+    });
+  }, []);
+
+  const updateBacklogQuests = useCallback((quests) => {
+    setState(prev => ({ ...prev, backlogQuests: quests }));
   }, []);
 
   const abandonQuest = useCallback(() => {
@@ -164,6 +232,7 @@ export function useGameState() {
       ...prev,
       activeTasks:          [],
       phase:                'input',
+      questPrefill:         [],
       questsAbandonedToday: prev.questsAbandonedToday + 1,
     }));
   }, []);
@@ -190,6 +259,9 @@ export function useGameState() {
     questsAbandonedToday: state.questsAbandonedToday,
     activeTasks:          state.activeTasks,
     phase:                state.phase,
+    backlogQuests:        state.backlogQuests ?? [],
+    questPrefill:         state.questPrefill  ?? [],
+    streak,
 
     // Ephemeral UI events
     levelUpEvent,
@@ -201,6 +273,8 @@ export function useGameState() {
     toggleTask,
     abandonQuest,
     dismissLevelUp,
+    dismissCelebration,
+    updateBacklogQuests,
     resetCharacter,
   };
 }

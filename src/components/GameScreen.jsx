@@ -8,6 +8,7 @@ import CharacterPortrait from './CharacterPortrait';
 import XPBar from './XPBar';
 import QuestInput from './QuestInput';
 import QuestCard from './QuestCard';
+import SessionComplete from './SessionComplete';
 
 export default function GameScreen({ gameState }) {
   const {
@@ -21,14 +22,19 @@ export default function GameScreen({ gameState }) {
     activeTasks,
     phase,
     xpGainEvent,
+    backlogQuests,
+    questPrefill,
+    streak,
     startQuesting,
     toggleTask,
     abandonQuest,
+    dismissCelebration,
+    updateBacklogQuests,
     resetCharacter,
   } = gameState;
 
-  const levelName   = getLevelName(currentLevel);
-  const classIcon   = CLASS_ICONS[characterClass] || '';
+  const levelName    = getLevelName(currentLevel);
+  const classIcon    = CLASS_ICONS[characterClass] || '';
   const classDisplay = CLASS_DISPLAY[characterClass] || characterClass;
 
   // XP float animation state
@@ -46,16 +52,11 @@ export default function GameScreen({ gameState }) {
     }
   }, [xpGainEvent]);
 
-  // Confirm abandon
-  const [showAbandonConfirm, setShowAbandonConfirm] = useState(false);
+  // Abandon — modal confirm
+  const [showAbandonModal, setShowAbandonModal] = useState(false);
 
-  const handleAbandon = () => {
-    if (!showAbandonConfirm) {
-      setShowAbandonConfirm(true);
-      setTimeout(() => setShowAbandonConfirm(false), 3000);
-      return;
-    }
-    setShowAbandonConfirm(false);
+  const handleAbandonConfirm = () => {
+    setShowAbandonModal(false);
     abandonQuest();
   };
 
@@ -91,7 +92,7 @@ export default function GameScreen({ gameState }) {
               className="text-white/30 hover:text-white/60 transition-colors text-lg p-1"
               aria-label="Settings"
             >
-              ⚙
+              &#9881;
             </button>
           </div>
 
@@ -114,7 +115,7 @@ export default function GameScreen({ gameState }) {
                 }}
                 className="w-full text-left font-rajdhani text-red-400/70 text-sm py-2 px-2 rounded hover:bg-red-500/10 transition-colors"
               >
-                🗑 Reset Character
+                &#128465; Reset Character
               </button>
             </div>
           )}
@@ -141,10 +142,10 @@ export default function GameScreen({ gameState }) {
           </div>
 
           {/* Stats row */}
-          <div className="flex gap-3 mt-2">
-            <StatChip icon="✓" value={questsCompletedToday} label="Completed" color="green" />
-            <StatChip icon="✗" value={questsAbandonedToday} label="Abandoned" color="red" />
-            <StatChip icon="🏆" value={`${currentLevel}`} label="Level" color="gold" />
+          <div className="flex gap-2 mt-2">
+            <StatChip icon="\u2713" value={questsCompletedToday} label="Completed" color="green" />
+            <StatChip icon="\u2717" value={questsAbandonedToday} label="Abandoned" color="red" />
+            <StatChip icon="\uD83D\uDD25" value={streak} label="Streak" color="gold" />
           </div>
         </div>
       </div>
@@ -171,7 +172,12 @@ export default function GameScreen({ gameState }) {
 
         {/* ── Input Phase ─────────────────────────── */}
         {phase === 'input' && (
-          <QuestInput onStart={startQuesting} />
+          <QuestInput
+            onStart={startQuesting}
+            prefill={questPrefill}
+            backlogQuests={backlogQuests}
+            onBacklogChange={updateBacklogQuests}
+          />
         )}
 
         {/* ── Questing Phase ──────────────────────── */}
@@ -184,7 +190,7 @@ export default function GameScreen({ gameState }) {
               </span>
               {allComplete && (
                 <span className="font-cinzel text-green-400 text-xs font-bold animate-pulse-gold">
-                  ✦ ALL COMPLETE ✦
+                  &#10022; ALL COMPLETE &#10022;
                 </span>
               )}
             </div>
@@ -206,7 +212,7 @@ export default function GameScreen({ gameState }) {
             </div>
 
             {/* Quest cards */}
-            <div className="space-y-3 mb-5">
+            <div className="space-y-3 mb-6">
               {activeTasks.map((task, i) => (
                 <QuestCard
                   key={task.id}
@@ -217,17 +223,15 @@ export default function GameScreen({ gameState }) {
               ))}
             </div>
 
-            {/* Abandon button */}
-            <button
-              onClick={handleAbandon}
-              className={`btn-danger w-full rounded-lg py-3 text-xs tracking-[0.15em] ${
-                showAbandonConfirm ? 'animate-pulse' : ''
-              }`}
-            >
-              {showAbandonConfirm
-                ? '⚠ TAP AGAIN TO ABANDON'
-                : '✗ ABANDON QUEST'}
-            </button>
+            {/* Abandon — subtle text link */}
+            <div className="text-center pb-2">
+              <button
+                onClick={() => setShowAbandonModal(true)}
+                className="font-rajdhani text-xs text-white/20 hover:text-red-400/60 transition-colors underline underline-offset-2 tracking-wide"
+              >
+                abandon quest
+              </button>
+            </div>
           </div>
         )}
 
@@ -250,6 +254,67 @@ export default function GameScreen({ gameState }) {
           QUEST COMPLETE!
         </div>
       ))}
+
+      {/* ── Session Complete Celebration ─────────────────────────── */}
+      {phase === 'celebration' && (
+        <SessionComplete
+          currentLevel={currentLevel}
+          questsCompletedToday={questsCompletedToday}
+          hasBacklog={backlogQuests.length >= 3}
+          onContinue={dismissCelebration}
+        />
+      )}
+
+      {/* ── Abandon Confirm Modal ───────────────────────────────── */}
+      {showAbandonModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-6"
+          style={{ background: 'rgba(0,0,0,0.85)' }}
+          onClick={() => setShowAbandonModal(false)}
+        >
+          <div
+            className="w-full max-w-xs rounded-xl p-6 text-center animate-slide-up"
+            style={{
+              background: '#13131f',
+              border: '1px solid rgba(220,38,38,0.3)',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.9)',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="text-3xl mb-3">&#128128;</div>
+            <p className="font-cinzel text-red-400 text-sm font-bold tracking-wider mb-2">
+              COWARDICE RECORDED
+            </p>
+            <p className="font-rajdhani text-white/45 text-sm leading-relaxed mb-6">
+              Abandoned quests haunt your record&hellip;<br />are you sure?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowAbandonModal(false)}
+                className="flex-1 rounded-lg py-2.5 font-cinzel text-xs tracking-wide transition-colors"
+                style={{
+                  background: 'rgba(240,192,64,0.08)',
+                  border: '1px solid rgba(240,192,64,0.25)',
+                  color: '#f0c040',
+                }}
+              >
+                Keep Fighting
+              </button>
+              <button
+                onClick={handleAbandonConfirm}
+                className="flex-1 rounded-lg py-2.5 font-cinzel text-xs tracking-wide transition-colors"
+                style={{
+                  background: 'rgba(220,38,38,0.12)',
+                  border: '1px solid rgba(220,38,38,0.35)',
+                  color: '#f87171',
+                }}
+              >
+                Abandon
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Click to close settings overlay */}
       {showSettings && (

@@ -1,25 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getPortraitUrl, CLASS_ICONS, CLASS_DISPLAY, getLevelName } from '../utils/gameLogic';
 import { supabaseUrl } from '../utils/supabase';
 
 export default function CharacterPortrait({ gender, characterClass, level, levelName }) {
   const [imgState, setImgState] = useState('loading'); // 'loading' | 'loaded' | 'error'
   const [src, setSrc]           = useState('');
-  const [prevLevel, setPrevLevel] = useState(level);
+  const prevSrcRef              = useRef('');
 
-  // Build URL whenever level, gender, or class changes
+  // Build URL whenever level, gender, or class changes.
+  // Only reset imgState to 'loading' if the URL actually changed — otherwise
+  // the browser won't re-fire onLoad (same src = no reload) and we'd be
+  // stuck in a permanent blank-skeleton state.
   useEffect(() => {
     const url = getPortraitUrl(supabaseUrl, gender, characterClass, level);
     if (!url) {
       setImgState('error');
       return;
     }
-    if (level !== prevLevel) {
+    if (url !== prevSrcRef.current) {
+      prevSrcRef.current = url;
       setImgState('loading');
-      setPrevLevel(level);
     }
     setSrc(url);
-  }, [gender, characterClass, level]); // eslint-disable-line
+  }, [gender, characterClass, level]);
 
   const classIcon = CLASS_ICONS[characterClass] || '?';
   const classDisplay = CLASS_DISPLAY[characterClass] || characterClass;

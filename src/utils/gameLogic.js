@@ -158,6 +158,12 @@ export const getTodayString = () => {
   return new Date().toISOString().split('T')[0];
 };
 
+export const getYesterdayString = () => {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().split('T')[0];
+};
+
 // ── Quest progress bar percentage ─────────────────────────────────────────────
 
 export const getQuestPercent = (questsTowardLevel) => {
