@@ -146,9 +146,25 @@ const PORTRAIT_BASE = (() => {
   return null;
 })();
 
+const PORTRAIT_TIER = (level) => {
+  if (level >= 100) return 100;
+  if (level >= 91)  return 91;
+  if (level >= 81)  return 81;
+  if (level >= 71)  return 71;
+  if (level >= 61)  return 61;
+  if (level >= 51)  return 51;
+  if (level >= 41)  return 41;
+  if (level >= 31)  return 31;
+  if (level >= 21)  return 21;
+  if (level >= 11)  return 11;
+  if (level >= 6)   return 6;
+  return 1;
+};
+
 export const getPortraitUrl = (_unused, gender, characterClass, level) => {
   if (!PORTRAIT_BASE) return null;
-  return `${PORTRAIT_BASE}/${gender.toLowerCase()}/${characterClass.toLowerCase()}/${level}.png`;
+  const tier = PORTRAIT_TIER(level);
+  return `${PORTRAIT_BASE}/${gender.toLowerCase()}/${characterClass.toLowerCase()}/${tier}.png`;
 };
 
 // ── Date utils ────────────────────────────────────────────────────────────────
