@@ -136,8 +136,7 @@ export function useGameState() {
         prev.currentLevel,
       );
 
-      const TIER_LEVELS = new Set([6, 11, 21, 31, 41, 51, 61, 71, 81, 91, 100]);
-      if (levelsGained > 0 && TIER_LEVELS.has(newLevel)) {
+      if (levelsGained > 0) {
         pendingLevelUp = { fromLevel: prev.currentLevel, toLevel: newLevel };
       }
 
