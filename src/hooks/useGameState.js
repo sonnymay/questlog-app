@@ -69,6 +69,27 @@ function saveState(state) {
   }
 }
 
+// Shared helper: given the current backlog, return the state slice for the next phase.
+// If 3+ queued quests: auto-start questing. Otherwise: prefill input with what's available.
+function resolveBacklog(backlogQuests) {
+  const next      = (backlogQuests ?? []).slice(0, 3);
+  const remaining = (backlogQuests ?? []).slice(3);
+  if (next.length === 3) {
+    return {
+      activeTasks:   next.map((text, i) => ({ id: i, text, completed: false })),
+      backlogQuests: remaining,
+      questPrefill:  [],
+      phase:         'questing',
+    };
+  }
+  return {
+    activeTasks:   [],
+    backlogQuests: remaining,
+    questPrefill:  next,
+    phase:         'input',
+  };
+}
+
 export function useGameState() {
   const [state, setState] = useState(loadState);
 
@@ -173,10 +194,8 @@ export function useGameState() {
         newStreak = 1;
       }
 
-      return {
-        ...prev,
+      const baseUpdates = {
         activeTasks:          [],
-        phase:                'celebration',
         questsTowardLevel:    newQuestsTowardLevel,
         currentLevel:         newLevel,
         questsCompletedToday: prev.questsCompletedToday + 1,
@@ -184,6 +203,13 @@ export function useGameState() {
         streak:               newStreak,
         lastCompletedDate:    todayStr,
       };
+
+      // Only show the celebration screen on an actual level-up.
+      // For regular completions, resolve the backlog and go straight to the next phase.
+      if (levelsGained > 0) {
+        return { ...prev, ...baseUpdates, phase: 'celebration' };
+      }
+      return { ...prev, ...baseUpdates, ...resolveBacklog(prev.backlogQuests) };
     });
 
     if (pendingLevelUp) {
@@ -191,36 +217,9 @@ export function useGameState() {
     }
   }, []);
 
-  // Called from the celebration screen's "Continue" button.
-  // Auto-pulls from backlog: 3+ items -> skip input and go straight to questing;
-  // fewer -> prefill input with what's available.
+  // Called from the celebration screen's "Continue" button (level-up only path).
   const dismissCelebration = useCallback(() => {
-    setState(prev => {
-      const backlog   = prev.backlogQuests ?? [];
-      const nextItems = backlog.slice(0, 3);
-      const remaining = backlog.slice(3);
-
-      if (nextItems.length === 3) {
-        // Full queue — auto-start immediately
-        const tasks = nextItems.map((text, i) => ({ id: i, text, completed: false }));
-        return {
-          ...prev,
-          activeTasks:   tasks,
-          backlogQuests: remaining,
-          questPrefill:  [],
-          phase:         'questing',
-        };
-      }
-
-      // Partial or empty queue — prefill input with whatever we have
-      return {
-        ...prev,
-        activeTasks:   [],
-        backlogQuests: remaining,
-        questPrefill:  nextItems,
-        phase:         'input',
-      };
-    });
+    setState(prev => ({ ...prev, ...resolveBacklog(prev.backlogQuests) }));
   }, []);
 
   const updateBacklogQuests = useCallback((quests) => {

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 
 const QUEST_COUNT = 3;
 
@@ -15,7 +15,7 @@ const FLAVOR_LINES = [
   'Steel your will and name your trials.',
 ];
 
-// Pick a stable flavor line per calendar day so it feels curated, not random
+// Stable per calendar day — feels curated, not random
 function getDailyFlavorLine() {
   const dayOfYear = Math.floor(Date.now() / 86_400_000);
   return FLAVOR_LINES[dayOfYear % FLAVOR_LINES.length];
@@ -32,12 +32,11 @@ const PLACEHOLDER_QUESTS = [
   'Study the arcane spellbook...',
 ];
 
-function randomPlaceholder(index) {
+function getPlaceholder(index) {
   return PLACEHOLDER_QUESTS[(index * 3) % PLACEHOLDER_QUESTS.length];
 }
 
-export default function QuestInput({ onStart, prefill = [], backlogQuests = [], onBacklogChange }) {
-  // Initialise from prefill (populated when backlog has 1–2 items and auto-filled)
+export default function QuestInput({ onStart, prefill = [] }) {
   const [tasks, setTasks] = useState(() => {
     const init = ['', '', ''];
     prefill.forEach((text, i) => { if (i < 3) init[i] = text; });
@@ -45,11 +44,6 @@ export default function QuestInput({ onStart, prefill = [], backlogQuests = [], 
   });
   const [errors,  setErrors]  = useState([false, false, false]);
   const [shaking, setShaking] = useState(false);
-
-  // Backlog UI
-  const [backlogOpen,    setBacklogOpen]    = useState(false);
-  const [backlogDraft,   setBacklogDraft]   = useState('');
-  const backlogInputRef = useRef(null);
 
   const flavorLine = getDailyFlavorLine();
 
@@ -91,29 +85,6 @@ export default function QuestInput({ onStart, prefill = [], backlogQuests = [], 
     onStart(tasks);
   };
 
-  // ── Backlog handlers ───────────────────────────────────────────────────
-
-  const addBacklogItem = () => {
-    const text = backlogDraft.trim();
-    if (!text) return;
-    onBacklogChange([...backlogQuests, text]);
-    setBacklogDraft('');
-    backlogInputRef.current?.focus();
-  };
-
-  const removeBacklogItem = (index) => {
-    const next = [...backlogQuests];
-    next.splice(index, 1);
-    onBacklogChange(next);
-  };
-
-  const handleBacklogKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addBacklogItem();
-    }
-  };
-
   const filledCount = tasks.filter(t => t.trim()).length;
 
   return (
@@ -132,7 +103,7 @@ export default function QuestInput({ onStart, prefill = [], backlogQuests = [], 
       <div className="space-y-3 mb-5">
         {tasks.map((task, i) => (
           <div key={i} className="relative">
-            {/* Quest number badge */}
+            {/* Quest number / checkmark badge */}
             <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
               <div
                 className="w-6 h-6 rounded flex items-center justify-center"
@@ -159,7 +130,7 @@ export default function QuestInput({ onStart, prefill = [], backlogQuests = [], 
                       : '#f0c04060',
                   }}
                 >
-                  {task.trim() ? '\u2713' : i + 1}
+                  {task.trim() ? '✓' : i + 1}
                 </span>
               </div>
             </div>
@@ -170,11 +141,11 @@ export default function QuestInput({ onStart, prefill = [], backlogQuests = [], 
               value={task}
               onChange={e => updateTask(i, e.target.value)}
               onKeyDown={e => handleKeyDown(e, i)}
-              placeholder={randomPlaceholder(i)}
+              placeholder={getPlaceholder(i)}
               maxLength={80}
               className={`quest-input w-full rounded-lg pl-12 pr-4 py-3.5 text-sm font-rajdhani font-medium ${
-                errors[i] ? 'border-red-500/60 animate-shake' : ''
-              } ${shaking && errors[i] ? 'animate-shake' : ''}`}
+                shaking && errors[i] ? 'animate-shake' : ''
+              }`}
             />
 
             {errors[i] && (
@@ -186,7 +157,7 @@ export default function QuestInput({ onStart, prefill = [], backlogQuests = [], 
         ))}
       </div>
 
-      {/* Progress indicator */}
+      {/* Progress dots */}
       <div className="flex justify-center gap-2 mb-5">
         {tasks.map((t, i) => (
           <div
@@ -205,113 +176,13 @@ export default function QuestInput({ onStart, prefill = [], backlogQuests = [], 
           filledCount < QUEST_COUNT ? 'opacity-60' : ''
         }`}
       >
-        <span className="mr-2">\u2694</span>
-        ACCEPT QUESTS
+        ⚔ ACCEPT QUESTS
         {filledCount > 0 && filledCount < QUEST_COUNT && (
           <span className="ml-2 font-rajdhani font-normal text-xs opacity-70">
             ({filledCount}/{QUEST_COUNT})
           </span>
         )}
       </button>
-
-      {/* ── Future Quests Backlog ──────────────────────────────── */}
-      <div className="mt-5">
-        <button
-          onClick={() => setBacklogOpen(o => !o)}
-          className="w-full flex items-center justify-between py-2 px-1 group"
-        >
-          <span className="font-cinzel text-[10px] tracking-[0.25em] text-white/30 group-hover:text-white/50 transition-colors">
-            FUTURE QUESTS
-          </span>
-          <span className="flex items-center gap-2">
-            {backlogQuests.length > 0 && (
-              <span
-                className="font-rajdhani text-[10px] rounded-full px-1.5 py-0.5"
-                style={{
-                  background: 'rgba(240,192,64,0.1)',
-                  border: '1px solid rgba(240,192,64,0.25)',
-                  color: '#f0c040aa',
-                }}
-              >
-                {backlogQuests.length}
-              </span>
-            )}
-            <span className="text-white/25 text-xs group-hover:text-white/50 transition-colors">
-              {backlogOpen ? '\u25be' : '\u25b8'}
-            </span>
-          </span>
-        </button>
-
-        {backlogOpen && (
-          <div
-            className="rounded-lg p-3 mt-1 animate-slide-up"
-            style={{
-              background: 'rgba(6,6,12,0.6)',
-              border: '1px solid rgba(240,192,64,0.1)',
-            }}
-          >
-            <p className="font-rajdhani text-white/25 text-[10px] tracking-wide mb-3">
-              Queue quests here — they auto-fill your next session when you finish.
-            </p>
-
-            {/* Existing backlog items */}
-            {backlogQuests.length > 0 && (
-              <div className="space-y-1.5 mb-3">
-                {backlogQuests.map((q, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-2 rounded px-2.5 py-2"
-                    style={{ background: 'rgba(240,192,64,0.04)', border: '1px solid rgba(240,192,64,0.08)' }}
-                  >
-                    <span
-                      className="font-cinzel text-[9px] text-gold/30 flex-shrink-0"
-                      style={{ minWidth: '14px' }}
-                    >
-                      {i + 1}
-                    </span>
-                    <span className="font-rajdhani text-white/50 text-xs flex-1 leading-tight">
-                      {q}
-                    </span>
-                    <button
-                      onClick={() => removeBacklogItem(i)}
-                      className="text-white/20 hover:text-red-400/70 transition-colors text-xs ml-1 flex-shrink-0"
-                      aria-label="Remove"
-                    >
-                      \u2715
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Add new item */}
-            <div className="flex gap-2">
-              <input
-                ref={backlogInputRef}
-                type="text"
-                value={backlogDraft}
-                onChange={e => setBacklogDraft(e.target.value)}
-                onKeyDown={handleBacklogKeyDown}
-                placeholder="Add a future quest..."
-                maxLength={80}
-                className="quest-input flex-1 rounded-lg pl-3 pr-3 py-2 text-xs font-rajdhani"
-              />
-              <button
-                onClick={addBacklogItem}
-                disabled={!backlogDraft.trim()}
-                className="font-cinzel text-[10px] tracking-wide rounded-lg px-3 py-2 transition-all flex-shrink-0 disabled:opacity-30"
-                style={{
-                  background: 'rgba(240,192,64,0.1)',
-                  border: '1px solid rgba(240,192,64,0.25)',
-                  color: '#f0c040',
-                }}
-              >
-                + ADD
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

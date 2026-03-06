@@ -28,12 +28,15 @@ export default function XPBar({ questsTowardLevel, currentLevel }) {
           boxShadow:  'inset 0 1px 3px rgba(0,0,0,0.8)',
         }}
       >
-        {/* Fill */}
+        {/* Fill — all styling inline so it can't be overridden by stale CSS */}
         <div
-          className="absolute left-0 top-0 bottom-0 xp-bar-fill rounded-full transition-all duration-700"
+          className="absolute left-0 top-0 bottom-0 rounded-full transition-all duration-700"
           style={{
-            width:     `${percent}%`,
-            boxShadow: percent > 0 ? '0 0 10px rgba(240,192,64,0.6), 0 0 20px rgba(240,192,64,0.25)' : 'none',
+            width:      `${percent}%`,
+            background: 'linear-gradient(90deg, #b8860b, #f0c040, #fde68a)',
+            boxShadow:  percent > 0
+              ? '0 0 10px rgba(240,192,64,0.7), 0 0 22px rgba(240,192,64,0.3)'
+              : 'none',
           }}
         />
 
