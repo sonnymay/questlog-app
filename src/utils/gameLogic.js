@@ -97,7 +97,7 @@ export const getLevelRoman = (level) => {
 // ── Quest-based leveling ──────────────────────────────────────────────────────
 
 /** Number of completed quest sets required to gain one level */
-export const QUESTS_PER_LEVEL = 3;
+export const QUESTS_PER_LEVEL = 1;
 
 /** Process a completed quest set, returning new questsTowardLevel and level */
 export const processQuestCompletion = (questsTowardLevel, currentLevel) => {
